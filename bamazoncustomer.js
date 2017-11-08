@@ -12,7 +12,7 @@ var connection = mysql.createConnection({
 connection.connect(function(err) {
 
 	console.log('Connected to bamazondb on Port 3306');
-	runInquirer();
+	createTable();
 })
 
 
@@ -32,34 +32,29 @@ var questions = [
 var runInquirer = function() {
 
        inquirer.prompt(questions).then(function(answer) {
+       	console.log(answer)
 
-		var query = 'SELECT id, product_name, department_name, price, stock_quantity FROM bamazondb.products WHERE ?';
+		var query = 'SELECT * FROM products WHERE id = ?';
 
-		connection.query(query, {ItemID:answer.item}, function(err, res) {
+		connection.query(query, [parseInt(answer.id)], function(err, res) {
 	
-			if (res.length == 0) {
-				console.log('Invalid item');
-			}
+			console.log("Testing: ", res);
 		
-		if (res[0].stock_quantity >= answer.quantity) {
-				var updatedQuantity = res[0].stock_quantity - answer.quantity;
-				console.log('Your total cost of buying ' + answer.quantity + ' units of ' + 
-					res[0].product_name + ' is $' + (answer.quantity * res[0].price).toFixed(2));
-				connection.query('UPDATE bamazondb.products SET ? WHERE ?', 
-					[{
-						stock_qantity: updatedQuantity
-					},
-					{
-						iD: answer.item
-					}], function(err, res) {
-					console.log('Database updated');
-				});
-
-				connection.end();
-			} else {
-				console.log('Insufficient quantity!');
-			}
 			runInquirer();
 		})
-	})
+})
+}
+
+
+var createTable  = function(){
+    connection.query("SELECT * FROM products", function(err,res){
+    for(var i=0; i<res.length; i++){
+    	console.log(res[i].id+"|| "+res[i].product_name+" ||"+
+                    res[i].department_name+"|| "+res[i].price+" ||"+ res[i].stock_quantity+"\n");
+    }
+
+	runInquirer();
+
+
+})
 }
